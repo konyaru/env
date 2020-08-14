@@ -1,0 +1,43 @@
+version: '3.8'
+services:
+  app:
+    build:
+      context: .
+    container_name: SS_rails-container
+    hostname: SS_rails-server
+    env_file:
+      - ./environments/db.env
+    command: bundle exec puma -C config/puma.rb
+    volumes:
+      - .:/webapp
+      - public-data:/webapp/public
+      - tmp-data:/webapp/tmp
+      - log-data:/webapp/log
+    depends_on:
+      - db
+  db:
+    image: mysql:8.0.21
+    container_name: SS_mysql-container
+    hostname: SS_mysql-server
+    env_file:
+      - ./environments/db.env
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+  web:
+    build:
+      context: ./nginx
+    container_name: SS_nginx-container
+    hostname: SS_nginx-server
+    volumes:
+      - public-data:/webapp/public
+      - tmp-data:/webapp/tmp
+    ports:
+      - 8080:8080
+    depends_on:
+      - app
+volumes:
+  public-data:
+  tmp-data:
+  log-data:
+  db-data:
