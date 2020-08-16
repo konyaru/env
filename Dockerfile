@@ -19,24 +19,26 @@ RUN apk update && \
         linux-headers \
         make \
         nodejs \
-        postgresql \
-        postgresql-dev \
         tzdata \
-				git \
-        yarn && \
+	git \
+        yarn &&\
+    apk add --update mariadb-dev && \
     apk add --virtual build-packs --no-cache \
         build-base \
-        curl-dev
+        curl-dev && \
+#    rm /usr/lib/mysqld* \
+    rm /usr/bin/mysql*
 
-# ホストのGemfileとGemfile.lockをコンテナにコピ
+# ホストのGemfileとGemfile.lockをコンテナにコピー
 COPY Gemfile ${ROOT}
 COPY Gemfile.lock ${ROOT}
 
 # bundle installの実行
-RUN bundle install
+RUN bundle config --local build.mysql2 "--with-ldflags=-L/usr/local/opt/openssl/lib" && \
+    bundle install
 RUN apk del build-packs
 
- ホストのアプリケーションディレクトリ内をすべてコンテナに
+# ホストのアプリケーションディレクトリ内をすべてコンテナに
 COPY . ${ROOT}
 
 # puma.sockを配置するディレクトリを作成
